@@ -16,10 +16,10 @@ BLACK = (0,0,0)
 RED = (255,0,0)
 
 init_board = [ # [val, isFresh]
-    [[4, False], [2, False], [2, False], [4, False]], # col 1
-    [[0, False], [0, False], [2, False], [2, False]], # col 2
-    [[4, False], [0, False], [4, False], [2, False]], # col 3
-    [[2, False], [2, False], [2, False], [2, False]] # col 4
+    [[8, False], [2, False], [2, False], [4, False]], # col 1
+    [[4, False], [0, False], [2, False], [2, False]], # col 2
+    [[2, False], [0, False], [4, False], [2, False]], # col 3
+    [[0, False], [2, False], [2, False], [2, False]] # col 4
 ]
 
 ##################
@@ -79,21 +79,22 @@ class Board():
                                 self.board[curr][j][0] = 0
                             curr = curr-1
         elif dir == "right":
-            for i, col in enumerate(self.board): # apply to each col
+            for j, col in enumerate(self.board): # apply to each col
                 # move right
-                for j in range(len(col)-1, -1, -1): # -2 so bottom val is skipped
+                for i in range(len(col)-1, -1, -1):
                     if self.board[i][j][0] > 0: # only move non-empty cells
-                        curr = i
+                        curr = i # current index
                         while curr+1 < 4:
-                            if self.board[curr+1][j][0] == 0: # if target cell empty
+                            if self.board[curr+1][j][0] == 0: # if target cell empty:
                                 self.board[curr+1][j][0] = self.board[curr][j][0]
                                 self.board[curr][j][0] = 0
-                            elif self.board[curr][j][0] == self.board[curr+1][j][0] and not self.board[curr][j][1] and not self.board[curr+1][j][1]: # if target cell equal to current and neither have just been altered
+                            elif self.board[curr][j][0] == self.board[curr+1][j][0] and not self.board[curr][j][1] and not self.board[curr+1][j][1]: # if target cell equal to current and neither have just been altered:
                                 # combine cells
                                 self.board[curr+1][j][0] = self.board[curr][j][0] + self.board[curr+1][j][0]
                                 self.board[curr+1][j][1] = True
                                 self.board[curr][j][0] = 0
                             curr = curr+1
+                pass
         elif dir == "up":
             for i, col in enumerate(self.board): # apply to each col
                 # move up
@@ -127,6 +128,9 @@ class Board():
                                 self.board[i][curr][0] = 0
                             curr = curr+1
         self.set_fresh()
+
+    def gen_num(self):
+        pass
 
     def draw(self):
         WINDOW.blit(self.surf, self.rect)
