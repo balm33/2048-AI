@@ -5,6 +5,9 @@ import sys
 import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 import pygame
+import random
+
+pygame.init()
 
 #############
 # Variables #
@@ -28,8 +31,8 @@ init_board = [ # [val, isFresh]
 winHeight = 600 
 winWidth = 800
 WINDOW = pygame.display.set_mode((winWidth, winHeight), pygame.HWSURFACE|pygame.DOUBLEBUF)
-# font = pygame.font.Font("PATHTOFONT", 20)
-# pygame.display.set_caption("NAME")
+font = pygame.font.Font("resources/arial.ttf", 20)
+pygame.display.set_caption("2048 AI")
 
 ###########
 # Sprites #
@@ -55,11 +58,28 @@ class Board():
         self.board = init_board
         self.surf = imgboard
         self.rect = self.surf.get_rect(topleft=board_offset)
+        self.score = 0
 
     def set_fresh(self):
         for i in range(len(self.board)):
             for j in range(len(self.board[i])):
                 self.board[i][j][1] = False
+
+    def gen_num(self):
+        # generate a 2 or a 4 in a random empty spot on the board
+        randx, randy = -1, -1
+        attempts = 0
+        while True: # brute force process of finding an open space, break if found or none empty
+            randx = random.randint(0, 3)
+            randy = random.randint(0, 3)
+            attempts = attempts+1
+            if self.board[randx][randy][0] == 0 or attempts >= 16:
+                break
+        if attempts >= 16:
+            return 0
+        num = random.choices([2, 4], weights=(9, 1), k=1)[0]
+        self.board[randx][randy][0] = num
+        
 
     def move(self, dir):
         if dir == "left":
@@ -75,6 +95,7 @@ class Board():
                             elif self.board[curr][j][0] == self.board[curr-1][j][0] and not self.board[curr][j][1] and not self.board[curr-1][j][1]: # if target cell equal to current and neither have just been altered
                                 # combine cells
                                 self.board[curr-1][j][0] = self.board[curr][j][0] + self.board[curr-1][j][0]
+                                self.score += self.board[curr-1][j][0]
                                 self.board[curr-1][j][1] = True
                                 self.board[curr][j][0] = 0
                             curr = curr-1
@@ -91,6 +112,7 @@ class Board():
                             elif self.board[curr][j][0] == self.board[curr+1][j][0] and not self.board[curr][j][1] and not self.board[curr+1][j][1]: # if target cell equal to current and neither have just been altered:
                                 # combine cells
                                 self.board[curr+1][j][0] = self.board[curr][j][0] + self.board[curr+1][j][0]
+                                self.score += self.board[curr+1][j][0]
                                 self.board[curr+1][j][1] = True
                                 self.board[curr][j][0] = 0
                             curr = curr+1
@@ -108,6 +130,7 @@ class Board():
                             elif self.board[i][curr][0] == self.board[i][curr-1][0] and not self.board[i][curr][1] and not self.board[i][curr-1][1]: # if target cell equal to current and neither have just been altered
                                 # combine cells
                                 self.board[i][curr-1][0] = self.board[i][curr][0] + self.board[i][curr-1][0]
+                                self.score += self.board[i][curr-1][0]
                                 self.board[i][curr-1][1] = True
                                 self.board[i][curr][0] = 0
                             curr = curr-1             
@@ -124,13 +147,12 @@ class Board():
                             elif self.board[i][curr][0] == self.board[i][curr+1][0] and not self.board[i][curr][1] and not self.board[i][curr+1][1]: # if target cell equal to current and neither have just been altered
                                 # combine cells
                                 self.board[i][curr+1][0] = self.board[i][curr][0] + self.board[i][curr+1][0]
+                                self.score += self.board[i][curr+1][0]
                                 self.board[i][curr+1][1] = True
                                 self.board[i][curr][0] = 0
                             curr = curr+1
         self.set_fresh()
-
-    def gen_num(self):
-        pass
+        self.gen_num()
 
     def draw(self):
         WINDOW.blit(self.surf, self.rect)
@@ -174,5 +196,9 @@ while True:
             if event.key == pygame.K_s:
                 board.move("down")
     
+    dispScore = font.render("Score: " +str(int(board.score)), True, BLACK)        
+
+    WINDOW.blit(dispScore, (600, 15))
+
     board.draw()
     pygame.display.update()
