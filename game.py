@@ -2,17 +2,25 @@
 # Imports #
 ###########
 import sys
-from os import environ
-environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 import pygame
 
 #############
 # Variables #
 #############
+board_offset = (20, 20)
 # colors
 WHITE = (255,255,255)
 BLACK = (0,0,0)
 RED = (255,0,0)
+
+init_board = [ # [val, isFresh]
+    [[4, False], [2, False], [2, False], [4, False]], # col 1
+    [[0, False], [0, False], [2, False], [2, False]], # col 2
+    [[4, False], [0, False], [4, False], [2, False]], # col 3
+    [[2, False], [2, False], [2, False], [2, False]] # col 4
+]
 
 ##################
 # Initialization #
@@ -24,45 +32,105 @@ WINDOW = pygame.display.set_mode((winWidth, winHeight), pygame.HWSURFACE|pygame.
 # pygame.display.set_caption("NAME")
 
 ###########
+# Sprites #
+###########
+imgboard = pygame.image.load(os.path.join("resources","board.png")).convert_alpha()
+img2 = pygame.image.load(os.path.join("resources", "2.png")).convert_alpha()
+img4 = pygame.image.load(os.path.join("resources", "4.png")).convert_alpha()
+img8 = pygame.image.load(os.path.join("resources", "8.png")).convert_alpha()
+img16 = pygame.image.load(os.path.join("resources", "16.png")).convert_alpha()
+img32 = pygame.image.load(os.path.join("resources", "32.png")).convert_alpha()
+img64 = pygame.image.load(os.path.join("resources", "64.png")).convert_alpha()
+img128 = pygame.image.load(os.path.join("resources", "128.png")).convert_alpha()
+img256 = pygame.image.load(os.path.join("resources", "256.png")).convert_alpha()
+img512 = pygame.image.load(os.path.join("resources", "512.png")).convert_alpha()
+img1024 = pygame.image.load(os.path.join("resources", "1024.png")).convert_alpha()
+img2048 = pygame.image.load(os.path.join("resources", "2048.png")).convert_alpha()
+
+###########
 # Classes #
 ###########
-class Player():
+class Board():
     def __init__(self):
-        self.surf = pygame.surface.Surface((50, 50))
-        self.rect = self.surf.get_rect(midbottom=(50, 50))
-        self.surf.fill(WHITE)
+        self.board = init_board
+        self.surf = imgboard
+        self.rect = self.surf.get_rect(topleft=board_offset)
 
-    def event(self):
-        pass
+    def set_fresh(self):
+        for i in range(len(self.board)):
+            for j in range(len(self.board[i])):
+                self.board[i][j][1] = False
 
-    def move(self):
-        pass
+    def move(self, dir):
+        if dir == "left":
+            pass
+        elif dir == "right":
+            pass
+        elif dir == "up":
+            pass
+        elif dir == "down":
+            for i, col in enumerate(self.board): # apply to each col
+                print(col)
+                # move down
+                for j in range(len(col)-2, -1, -1): # -2 so bottom val is skipped
+                    print(j)
+                    if self.board[i][j][0] > 0: # only move down non-empty cells
+                        # print("here")
+                        curr = j # current index
+                        while curr+1 < 4:
+                            if self.board[i][curr+1][0] == 0: # if target cell empty:
+                                # print("cell empty")
+                                self.board[i][curr+1][0] = self.board[i][curr][0]
+                                self.board[i][curr][0] = 0
+                            elif self.board[i][curr][0] == self.board[i][curr+1][0] and not self.board[i][curr][1] and not self.board[i][curr+1][1]: # if target cell equal to current
+                                # combine cells
+                                self.board[i][curr+1][0] = self.board[i][curr][0] + self.board[i][curr+1][0]
+                                self.board[i][curr+1][1] = True
+                                self.board[i][curr][0] = 0
+                            curr = curr+1
+        self.set_fresh()
 
     def draw(self):
         WINDOW.blit(self.surf, self.rect)
+        for i in range(len(self.board)):
+            for j in range(len(self.board[i])):
+                if self.board[i][j][0] != 0:
+                    x = self.rect.x + (12*(i+1)) + (128*i)
+                    y = self.rect.y + (12*(j+1)) + (128*j)
+                    img = globals()[f'img{self.board[i][j][0]}']
+                    WINDOW.blit(img, (x, y))
+
 
 ####################
 # Class References #
 ####################
-player = Player()
+board = Board()
 
 #############
 # Game Loop #
 #############
 while True:
     # fill screen every frame
-    WINDOW.fill(BLACK)
+    WINDOW.fill(WHITE)
 
     for event in pygame.event.get():
         #quit fuctionality
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-        # escape key to quit
         if event.type == pygame.KEYDOWN:
+            # escape key to quit
             if event.key == pygame.K_ESCAPE:
                 pygame.quit()
                 sys.exit()
+            if event.key == pygame.K_a:
+                pass
+            if event.key == pygame.K_d:
+                pass
+            if event.key == pygame.K_w:
+                pass
+            if event.key == pygame.K_s:
+                board.move("down")
     
-    player.draw()
+    board.draw()
     pygame.display.update()
