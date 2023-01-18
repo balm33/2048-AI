@@ -63,26 +63,64 @@ class Board():
 
     def move(self, dir):
         if dir == "left":
-            pass
+            # move left
+            for i, col in enumerate(self.board): # apply to each col
+                for j in range(0, len(col), 1):
+                    if self.board[i][j][0] > 0: # only move non-empty cells
+                        curr = i
+                        while curr-1 >= 0:
+                            if self.board[curr-1][j][0] == 0: # if target cell empty
+                                self.board[curr-1][j][0] = self.board[curr][j][0]
+                                self.board[curr][j][0] = 0
+                            elif self.board[curr][j][0] == self.board[curr-1][j][0] and not self.board[curr][j][1] and not self.board[curr-1][j][1]: # if target cell equal to current and neither have just been altered
+                                # combine cells
+                                self.board[curr-1][j][0] = self.board[curr][j][0] + self.board[curr-1][j][0]
+                                self.board[curr-1][j][1] = True
+                                self.board[curr][j][0] = 0
+                            curr = curr-1
         elif dir == "right":
-            pass
+            for i, col in enumerate(self.board): # apply to each col
+                # move right
+                for j in range(len(col)-1, -1, -1): # -2 so bottom val is skipped
+                    if self.board[i][j][0] > 0: # only move non-empty cells
+                        curr = i
+                        while curr+1 < 4:
+                            if self.board[curr+1][j][0] == 0: # if target cell empty
+                                self.board[curr+1][j][0] = self.board[curr][j][0]
+                                self.board[curr][j][0] = 0
+                            elif self.board[curr][j][0] == self.board[curr+1][j][0] and not self.board[curr][j][1] and not self.board[curr+1][j][1]: # if target cell equal to current and neither have just been altered
+                                # combine cells
+                                self.board[curr+1][j][0] = self.board[curr][j][0] + self.board[curr+1][j][0]
+                                self.board[curr+1][j][1] = True
+                                self.board[curr][j][0] = 0
+                            curr = curr+1
         elif dir == "up":
-            pass
+            for i, col in enumerate(self.board): # apply to each col
+                # move up
+                for j in range(0, len(col), 1):
+                    if self.board[i][j][0] > 0: # only move non-empty cells
+                        curr = j # current index
+                        while curr-1 >= 0:
+                            if self.board[i][curr-1][0] == 0: # if target cell empty:
+                                self.board[i][curr-1][0] = self.board[i][curr][0]
+                                self.board[i][curr][0] = 0
+                            elif self.board[i][curr][0] == self.board[i][curr-1][0] and not self.board[i][curr][1] and not self.board[i][curr-1][1]: # if target cell equal to current and neither have just been altered
+                                # combine cells
+                                self.board[i][curr-1][0] = self.board[i][curr][0] + self.board[i][curr-1][0]
+                                self.board[i][curr-1][1] = True
+                                self.board[i][curr][0] = 0
+                            curr = curr-1             
         elif dir == "down":
             for i, col in enumerate(self.board): # apply to each col
-                print(col)
                 # move down
                 for j in range(len(col)-2, -1, -1): # -2 so bottom val is skipped
-                    print(j)
-                    if self.board[i][j][0] > 0: # only move down non-empty cells
-                        # print("here")
+                    if self.board[i][j][0] > 0: # only move non-empty cells
                         curr = j # current index
                         while curr+1 < 4:
                             if self.board[i][curr+1][0] == 0: # if target cell empty:
-                                # print("cell empty")
                                 self.board[i][curr+1][0] = self.board[i][curr][0]
                                 self.board[i][curr][0] = 0
-                            elif self.board[i][curr][0] == self.board[i][curr+1][0] and not self.board[i][curr][1] and not self.board[i][curr+1][1]: # if target cell equal to current
+                            elif self.board[i][curr][0] == self.board[i][curr+1][0] and not self.board[i][curr][1] and not self.board[i][curr+1][1]: # if target cell equal to current and neither have just been altered
                                 # combine cells
                                 self.board[i][curr+1][0] = self.board[i][curr][0] + self.board[i][curr+1][0]
                                 self.board[i][curr+1][1] = True
@@ -124,11 +162,11 @@ while True:
                 pygame.quit()
                 sys.exit()
             if event.key == pygame.K_a:
-                pass
+                board.move("left")
             if event.key == pygame.K_d:
-                pass
+                board.move("right")
             if event.key == pygame.K_w:
-                pass
+                board.move("up")
             if event.key == pygame.K_s:
                 board.move("down")
     
