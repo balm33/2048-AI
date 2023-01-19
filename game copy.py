@@ -9,6 +9,8 @@ import random
 
 pygame.init()
 
+
+
 #############
 # Variables #
 #############
@@ -166,21 +168,6 @@ class Board():
                     img = globals()[f'img{self.board[i][j][0]}']
                     WINDOW.blit(img, (x, y))
 
-    def check_status(self):
-        # check if any adjacent cells of same number (legal move available)
-        # returns True if no legal moves available (game over)
-        for i in range(4):
-            for j in range(4-1):
-                curr = self.board[i][j][0]
-                if curr == self.board[i][j+1][0] or curr == 0:
-                    return False
-        for j in range(4):
-            for i in range(4-1):
-                curr = self.board[i][j][0]
-                if curr == self.board[i+1][j][0] or curr == 0:
-                    return False
-        return True
-
     def update_stats(self):
         n = 0 # update sum
         b = [] # update collapsed board
@@ -190,52 +177,62 @@ class Board():
                 b.append(self.board[i][j][0])
         self.sum = n
         self.board_collapsed = b
+    
+    def check_status(self):
+        # check if any adjacent cells of same number (legal move available)
+        # returns True if no legal moves available (game over)
+        for i in range(len(self.board)):
+            for j in range(len(self.board[i])):
+                curr = self.board[i][j][0]
+                if curr == self.board[i][j+1][0]:
+                    return False
+        return True
 
-def main():
-    ####################
-    # Class References #
-    ####################
+
+def play_step():
+    clock.tick(30)
+    # fill screen every frame
+    WINDOW.fill(WHITE)
+
+    for event in pygame.event.get():
+        #quit fuctionality
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+        if event.type == pygame.KEYDOWN:
+            # escape key to quit
+            if event.key == pygame.K_ESCAPE:
+                pygame.quit()
+                sys.exit()
+            if event.key == pygame.K_a:
+                board.move("left")
+            if event.key == pygame.K_d:
+                board.move("right")
+            if event.key == pygame.K_w:
+                board.move("up")
+            if event.key == pygame.K_s:
+                board.move("down")
+    
+    dispScore = font.render("Score: " +str(int(board.score)), True, BLACK)        
+    dispSum = font.render("Sum: " +str(int(board.sum)), True, BLACK)        
+
+    WINDOW.blit(dispScore, (600, 15))
+    WINDOW.blit(dispSum, (600, 40))
+
+    board.update_stats()
+    lose = board.check_status()
+    board.draw()
+    pygame.display.update()
+    return lose, board.score, board.sum, board.board_collapsed
+
+if __name__ == "__main__":
     board = Board()
 
-    #############
-    # Game Loop #
-    #############
     board.gen_num()
     clock = pygame.time.Clock()
     while True:
-        clock.tick(30)
-        # fill screen every frame
-        WINDOW.fill(WHITE)
+        game_over, score, sum, board_collapsed = play_step()
 
-        for event in pygame.event.get():
-            #quit fuctionality
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.KEYDOWN:
-                # escape key to quit
-                if event.key == pygame.K_ESCAPE:
-                    pygame.quit()
-                    sys.exit()
-                if event.key == pygame.K_a:
-                    board.move("left")
-                if event.key == pygame.K_d:
-                    board.move("right")
-                if event.key == pygame.K_w:
-                    board.move("up")
-                if event.key == pygame.K_s:
-                    board.move("down")
-        
-        dispScore = font.render("Score: " +str(int(board.score)), True, BLACK)        
-        dispSum = font.render("Sum: " +str(int(board.sum)), True, BLACK)        
-
-        WINDOW.blit(dispScore, (600, 15))
-        WINDOW.blit(dispSum, (600, 40))
-
-        board.update_stats()
-        board.draw()
-        print(board.check_status())
-        pygame.display.update()
-
-if __name__ == "__main__":
-    main()
+        if game_over:
+            break
+    print(f"\n############\nFinal Stats\n\nScore: {score}\nSum: {sum}\n############\n")
