@@ -3,7 +3,7 @@
 ###########
 import sys
 import os
-import time
+import math
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 import pygame
 import random
@@ -56,7 +56,8 @@ class Game():
         self.rect = self.surf.get_rect(topleft=board_offset)
         self.score = 0
         self.sum = 0
-        self.prevsum = 0
+        self.cell_add = 0
+        self.cell_moved = 0
         self.board_collapsed = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.reset()
 
@@ -69,6 +70,8 @@ class Game():
         ]
         self.score = 0
         self.sum = 0
+        self.cell_add = 0
+        self.cell_moved = 0
         self.board_collapsed = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.gen_num()
 
@@ -103,10 +106,12 @@ class Game():
                             if self.board[curr-1][j][0] == 0: # if target cell empty
                                 self.board[curr-1][j][0] = self.board[curr][j][0]
                                 self.board[curr][j][0] = 0
+                                self.cell_moved -= 2
                             elif self.board[curr][j][0] == self.board[curr-1][j][0] and not self.board[curr][j][1] and not self.board[curr-1][j][1]: # if target cell equal to current and neither have just been altered
                                 # combine cells
                                 self.board[curr-1][j][0] = self.board[curr][j][0] + self.board[curr-1][j][0]
                                 self.score += self.board[curr-1][j][0]
+                                self.cell_add += self.board[curr-1][j][0]
                                 self.board[curr-1][j][1] = True
                                 self.board[curr][j][0] = 0
                             curr = curr-1
@@ -120,14 +125,15 @@ class Game():
                             if self.board[curr+1][j][0] == 0: # if target cell empty:
                                 self.board[curr+1][j][0] = self.board[curr][j][0]
                                 self.board[curr][j][0] = 0
+                                self.cell_moved -= 2
                             elif self.board[curr][j][0] == self.board[curr+1][j][0] and not self.board[curr][j][1] and not self.board[curr+1][j][1]: # if target cell equal to current and neither have just been altered:
                                 # combine cells
                                 self.board[curr+1][j][0] = self.board[curr][j][0] + self.board[curr+1][j][0]
                                 self.score += self.board[curr+1][j][0]
+                                self.cell_add += self.board[curr+1][j][0]
                                 self.board[curr+1][j][1] = True
                                 self.board[curr][j][0] = 0
                             curr = curr+1
-                pass
         elif dir == "up":
             for i, col in enumerate(self.board): # apply to each col
                 # move up
@@ -138,10 +144,12 @@ class Game():
                             if self.board[i][curr-1][0] == 0: # if target cell empty:
                                 self.board[i][curr-1][0] = self.board[i][curr][0]
                                 self.board[i][curr][0] = 0
+                                self.cell_moved -= 2
                             elif self.board[i][curr][0] == self.board[i][curr-1][0] and not self.board[i][curr][1] and not self.board[i][curr-1][1]: # if target cell equal to current and neither have just been altered
                                 # combine cells
                                 self.board[i][curr-1][0] = self.board[i][curr][0] + self.board[i][curr-1][0]
                                 self.score += self.board[i][curr-1][0]
+                                self.cell_add += self.board[i][curr-1][0]
                                 self.board[i][curr-1][1] = True
                                 self.board[i][curr][0] = 0
                             curr = curr-1             
@@ -155,10 +163,12 @@ class Game():
                             if self.board[i][curr+1][0] == 0: # if target cell empty:
                                 self.board[i][curr+1][0] = self.board[i][curr][0]
                                 self.board[i][curr][0] = 0
+                                self.cell_moved -= 2
                             elif self.board[i][curr][0] == self.board[i][curr+1][0] and not self.board[i][curr][1] and not self.board[i][curr+1][1]: # if target cell equal to current and neither have just been altered
                                 # combine cells
                                 self.board[i][curr+1][0] = self.board[i][curr][0] + self.board[i][curr+1][0]
                                 self.score += self.board[i][curr+1][0]
+                                self.cell_add += self.board[i][curr+1][0]
                                 self.board[i][curr+1][1] = True
                                 self.board[i][curr][0] = 0
                             curr = curr+1
@@ -198,10 +208,12 @@ class Game():
     def update_stats(self):
         n = 0 # update sum
         b = [] # update collapsed board
+        lets = [0, 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p']
         for i in range(4):
             for j in range(4):
                 n += self.board[i][j][0]
-                b.append(self.board[i][j][0])
+                log2 = math.log2(self.board[i][j][0])
+                b.append(lets[log2])
         self.sum = n
         self.board_collapsed = b
 
@@ -246,8 +258,12 @@ class Game():
         lose = self.check_status()
         self.draw()
         pygame.display.update()
-        reward = self.sum - self.prevsum
-        self.prevsum = self.sum
+        
+        reward = self.cell_add + self.cell_moved # agent rewarded for collapsed cells and penalized for moving cells
+        
+        self.cell_add = 0
+        self.cell_moved = 0
+
         return lose, self.score, reward
 
 if __name__ == "__main__":

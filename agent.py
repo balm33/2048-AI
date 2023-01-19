@@ -17,11 +17,12 @@ class Agent:
         self.gamma = 0.9 # discount rate
         self.memory = deque(maxlen=MAX_MEMORY) # if memory exceeded memory popped from left
         
-        self.model = Linear_QNet(16, 256, 4)
+        self.model = Linear_QNet(16, 256, 4) # input size, hidden size, output size
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
 
     def get_state(self, game):
+        # get the current game state
         state = game.board_collapsed
         return np.array(state, dtype=int)
 
@@ -43,11 +44,13 @@ class Agent:
     def get_action(self, state):
         # random moves: tradeoff between exploration / exploitation
         # random until agent improves
-        self.epsilon = max(1000 - self.num_games, 1)
+        self.epsilon = max(400 - self.num_games, 1)
         final_move = [0, 0, 0, 0]
-        if random.randint( 0 , 200) < self.epsilon:
+        # purely random move generation
+        if random.randint(0 , 400) < self.epsilon:
             move = random.randint(0, 3)
             final_move[move] = 1
+        # agent chooses move
         else:
             state0 = torch.tensor(state, dtype=torch.float)
             prediction = self.model(state0)
@@ -87,6 +90,7 @@ def train():
             agent.num_games += 1
             agent.train_long_memory()
 
+            # saves best model
             if score > best_score:
                 best_score = score
                 agent.model.save()
