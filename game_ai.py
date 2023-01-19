@@ -56,6 +56,7 @@ class Game():
         self.rect = self.surf.get_rect(topleft=board_offset)
         self.score = 0
         self.sum = 0
+        self.prevsum = 0
         self.board_collapsed = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.reset()
 
@@ -206,7 +207,6 @@ class Game():
 
 
     def play_step(self, action):
-        clock.tick(30)
         # fill screen every frame
         WINDOW.fill(WHITE)
 
@@ -215,7 +215,6 @@ class Game():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-                
             # player controls
             # if event.type == pygame.KEYDOWN:
             #     if event.key == pygame.K_0:
@@ -228,7 +227,15 @@ class Game():
             #         self.move("up")
             #     if event.key == pygame.K_s:
             #         self.move("down")
-        
+        if action[0] == 1:
+            self.move("left")
+        if action[1] == 1:
+            self.move("right")
+        if action[2] == 1:
+            self.move("up")
+        if action[3] == 1:
+            self.move("down")
+
         dispScore = font.render("Score: " +str(int(self.score)), True, BLACK)        
         dispSum = font.render("Sum: " +str(int(self.sum)), True, BLACK)        
 
@@ -239,12 +246,13 @@ class Game():
         lose = self.check_status()
         self.draw()
         pygame.display.update()
-        return lose, self.score, self.sum, self.board_collapsed
+        reward = self.sum - self.prevsum
+        self.prevsum = self.sum
+        return lose, self.score, reward
 
 if __name__ == "__main__":
     game = Game()
 
-    clock = pygame.time.Clock()
     while True:
         game_over, score, sum, board_collapsed = game.play_step(0)
 
