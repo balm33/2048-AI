@@ -18,13 +18,6 @@ WHITE = (255,255,255)
 BLACK = (0,0,0)
 RED = (255,0,0)
 
-init_board = [ # [val, isFresh]
-    [[0, False], [0, False], [0, False], [0, False]], # col 1
-    [[0, False], [0, False], [0, False], [0, False]], # col 2
-    [[0, False], [0, False], [0, False], [0, False]], # col 3
-    [[0, False], [0, False], [0, False], [0, False]] # col 4
-]
-
 ##################
 # Initialization #
 ##################
@@ -55,12 +48,25 @@ img2048 = pygame.image.load(os.path.join("resources", "2048.png")).convert_alpha
 ###########
 class Board():
     def __init__(self):
-        self.board = init_board
+        self.board = [[]]
         self.surf = imgboard
         self.rect = self.surf.get_rect(topleft=board_offset)
         self.score = 0
         self.sum = 0
         self.board_collapsed = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.reset()
+
+    def reset(self):
+        self.board = [ # [val, isFresh]
+            [[0, False], [0, False], [0, False], [0, False]], # col 1
+            [[0, False], [0, False], [0, False], [0, False]], # col 2
+            [[0, False], [0, False], [0, False], [0, False]], # col 3
+            [[0, False], [0, False], [0, False], [0, False]] # col 4
+        ]
+        self.score = 0
+        self.sum = 0
+        self.board_collapsed = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.gen_num()
 
     def set_fresh(self):
         for i in range(len(self.board)):
@@ -172,12 +178,17 @@ class Board():
         for i in range(4):
             for j in range(4-1):
                 curr = self.board[i][j][0]
-                if curr == self.board[i][j+1][0] or curr == 0:
+                if curr == self.board[i][j+1][0]:
                     return False
         for j in range(4):
             for i in range(4-1):
                 curr = self.board[i][j][0]
-                if curr == self.board[i+1][j][0] or curr == 0:
+                if curr == self.board[i+1][j][0]:
+                    return False
+        for i in range(4):
+            for j in range(4):
+                curr = self.board[i][j][0]
+                if curr == 0:
                     return False
         return True
 
@@ -200,7 +211,6 @@ def main():
     #############
     # Game Loop #
     #############
-    board.gen_num()
     clock = pygame.time.Clock()
     while True:
         clock.tick(30)
@@ -217,6 +227,8 @@ def main():
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()
+                if event.key == pygame.K_0:
+                    board.reset()
                 if event.key == pygame.K_a:
                     board.move("left")
                 if event.key == pygame.K_d:
@@ -234,7 +246,6 @@ def main():
 
         board.update_stats()
         board.draw()
-        print(board.check_status())
         pygame.display.update()
 
 if __name__ == "__main__":

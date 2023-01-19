@@ -3,6 +3,7 @@
 ###########
 import sys
 import os
+import time
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 import pygame
 import random
@@ -19,13 +20,6 @@ board_offset = (20, 20)
 WHITE = (255,255,255)
 BLACK = (0,0,0)
 RED = (255,0,0)
-
-init_board = [ # [val, isFresh]
-    [[0, False], [0, False], [0, False], [0, False]], # col 1
-    [[0, False], [0, False], [0, False], [0, False]], # col 2
-    [[0, False], [0, False], [0, False], [0, False]], # col 3
-    [[0, False], [0, False], [0, False], [0, False]] # col 4
-]
 
 ##################
 # Initialization #
@@ -55,14 +49,27 @@ img2048 = pygame.image.load(os.path.join("resources", "2048.png")).convert_alpha
 ###########
 # Classes #
 ###########
-class Board():
+class Game():
     def __init__(self):
-        self.board = init_board
+        self.board = [[]]
         self.surf = imgboard
         self.rect = self.surf.get_rect(topleft=board_offset)
         self.score = 0
         self.sum = 0
         self.board_collapsed = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.reset()
+
+    def reset(self):
+        self.board = [ # [val, isFresh]
+            [[0, False], [0, False], [0, False], [0, False]], # col 1
+            [[0, False], [0, False], [0, False], [0, False]], # col 2
+            [[0, False], [0, False], [0, False], [0, False]], # col 3
+            [[0, False], [0, False], [0, False], [0, False]] # col 4
+        ]
+        self.score = 0
+        self.sum = 0
+        self.board_collapsed = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.gen_num()
 
     def set_fresh(self):
         for i in range(len(self.board)):
@@ -84,7 +91,6 @@ class Board():
         num = random.choices([2, 4], weights=(9, 1), k=1)[0]
         self.board[randx][randy][0] = num
         
-
     def move(self, dir):
         if dir == "left":
             # move left
@@ -168,6 +174,26 @@ class Board():
                     img = globals()[f'img{self.board[i][j][0]}']
                     WINDOW.blit(img, (x, y))
 
+    def check_status(self):
+        # check if any adjacent cells of same number (legal move available)
+        # returns True if no legal moves available (game over)
+        for i in range(4):
+            for j in range(4-1):
+                curr = self.board[i][j][0]
+                if curr == self.board[i][j+1][0]:
+                    return False
+        for j in range(4):
+            for i in range(4-1):
+                curr = self.board[i][j][0]
+                if curr == self.board[i+1][j][0]:
+                    return False
+        for i in range(4):
+            for j in range(4):
+                curr = self.board[i][j][0]
+                if curr == 0:
+                    return False
+        return True
+
     def update_stats(self):
         n = 0 # update sum
         b = [] # update collapsed board
@@ -177,61 +203,50 @@ class Board():
                 b.append(self.board[i][j][0])
         self.sum = n
         self.board_collapsed = b
-    
-    def check_status(self):
-        # check if any adjacent cells of same number (legal move available)
-        # returns True if no legal moves available (game over)
-        for i in range(len(self.board)):
-            for j in range(len(self.board[i])):
-                curr = self.board[i][j][0]
-                if curr == self.board[i][j+1][0]:
-                    return False
-        return True
 
 
-def play_step():
-    clock.tick(30)
-    # fill screen every frame
-    WINDOW.fill(WHITE)
+    def play_step(self, action):
+        clock.tick(30)
+        # fill screen every frame
+        WINDOW.fill(WHITE)
 
-    for event in pygame.event.get():
-        #quit fuctionality
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-        if event.type == pygame.KEYDOWN:
-            # escape key to quit
-            if event.key == pygame.K_ESCAPE:
+        for event in pygame.event.get():
+            #quit fuctionality
+            if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            if event.key == pygame.K_a:
-                board.move("left")
-            if event.key == pygame.K_d:
-                board.move("right")
-            if event.key == pygame.K_w:
-                board.move("up")
-            if event.key == pygame.K_s:
-                board.move("down")
-    
-    dispScore = font.render("Score: " +str(int(board.score)), True, BLACK)        
-    dispSum = font.render("Sum: " +str(int(board.sum)), True, BLACK)        
+                
+            # player controls
+            # if event.type == pygame.KEYDOWN:
+            #     if event.key == pygame.K_0:
+            #             self.reset()
+            #     if event.key == pygame.K_a:
+            #         self.move("left")
+            #     if event.key == pygame.K_d:
+            #         self.move("right")
+            #     if event.key == pygame.K_w:
+            #         self.move("up")
+            #     if event.key == pygame.K_s:
+            #         self.move("down")
+        
+        dispScore = font.render("Score: " +str(int(self.score)), True, BLACK)        
+        dispSum = font.render("Sum: " +str(int(self.sum)), True, BLACK)        
 
-    WINDOW.blit(dispScore, (600, 15))
-    WINDOW.blit(dispSum, (600, 40))
+        WINDOW.blit(dispScore, (600, 15))
+        WINDOW.blit(dispSum, (600, 40))
 
-    board.update_stats()
-    lose = board.check_status()
-    board.draw()
-    pygame.display.update()
-    return lose, board.score, board.sum, board.board_collapsed
+        self.update_stats()
+        lose = self.check_status()
+        self.draw()
+        pygame.display.update()
+        return lose, self.score, self.sum, self.board_collapsed
 
 if __name__ == "__main__":
-    board = Board()
+    game = Game()
 
-    board.gen_num()
     clock = pygame.time.Clock()
     while True:
-        game_over, score, sum, board_collapsed = play_step()
+        game_over, score, sum, board_collapsed = game.play_step(0)
 
         if game_over:
             break
