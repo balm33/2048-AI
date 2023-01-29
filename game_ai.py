@@ -106,7 +106,7 @@ class Game():
                             if self.board[curr-1][j][0] == 0: # if target cell empty
                                 self.board[curr-1][j][0] = self.board[curr][j][0]
                                 self.board[curr][j][0] = 0
-                                self.cell_moved -= 2
+                                self.cell_moved -= self.board[i][j][0]
                             elif self.board[curr][j][0] == self.board[curr-1][j][0] and not self.board[curr][j][1] and not self.board[curr-1][j][1]: # if target cell equal to current and neither have just been altered
                                 # combine cells
                                 self.board[curr-1][j][0] = self.board[curr][j][0] + self.board[curr-1][j][0]
@@ -125,7 +125,7 @@ class Game():
                             if self.board[curr+1][j][0] == 0: # if target cell empty:
                                 self.board[curr+1][j][0] = self.board[curr][j][0]
                                 self.board[curr][j][0] = 0
-                                self.cell_moved -= 2
+                                self.cell_moved -= self.board[i][j][0]
                             elif self.board[curr][j][0] == self.board[curr+1][j][0] and not self.board[curr][j][1] and not self.board[curr+1][j][1]: # if target cell equal to current and neither have just been altered:
                                 # combine cells
                                 self.board[curr+1][j][0] = self.board[curr][j][0] + self.board[curr+1][j][0]
@@ -144,7 +144,7 @@ class Game():
                             if self.board[i][curr-1][0] == 0: # if target cell empty:
                                 self.board[i][curr-1][0] = self.board[i][curr][0]
                                 self.board[i][curr][0] = 0
-                                self.cell_moved -= 2
+                                self.cell_moved -= self.board[i][j][0]
                             elif self.board[i][curr][0] == self.board[i][curr-1][0] and not self.board[i][curr][1] and not self.board[i][curr-1][1]: # if target cell equal to current and neither have just been altered
                                 # combine cells
                                 self.board[i][curr-1][0] = self.board[i][curr][0] + self.board[i][curr-1][0]
@@ -163,7 +163,7 @@ class Game():
                             if self.board[i][curr+1][0] == 0: # if target cell empty:
                                 self.board[i][curr+1][0] = self.board[i][curr][0]
                                 self.board[i][curr][0] = 0
-                                self.cell_moved -= 2
+                                self.cell_moved -= self.board[i][j][0]
                             elif self.board[i][curr][0] == self.board[i][curr+1][0] and not self.board[i][curr][1] and not self.board[i][curr+1][1]: # if target cell equal to current and neither have just been altered
                                 # combine cells
                                 self.board[i][curr+1][0] = self.board[i][curr][0] + self.board[i][curr+1][0]
@@ -208,12 +208,13 @@ class Game():
     def update_stats(self):
         n = 0 # update sum
         b = [] # update collapsed board
-        lets = [0, 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p']
         for i in range(4):
             for j in range(4):
                 n += self.board[i][j][0]
-                log2 = math.log2(self.board[i][j][0])
-                b.append(lets[log2])
+                log2 = 0
+                if self.board[i][j][0] > 0:
+                    log2 = math.log2(self.board[i][j][0])
+                b.append(log2)
         self.sum = n
         self.board_collapsed = b
 
